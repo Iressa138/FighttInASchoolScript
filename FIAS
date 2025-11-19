@@ -1,7 +1,7 @@
 repeat
     task.wait()
 until game:IsLoaded()
-
+//
 if PathosLoader then
     local BlurEffect = game:GetService('Lighting'):FindFirstChild('PathosBlur')
     do
